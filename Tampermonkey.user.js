@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ניהול ועיצוב עבור HebrewBooks
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Auto-redirect to format B, dynamic header, custom download button with ID-only filename, robust event isolation, and pixel-perfect toolbar anchoring
 // @author       צדיק וטוב לו וההודי של gemini
 // @match        *://beta.hebrewbooks.org/*
@@ -79,9 +79,6 @@
         if (toggle) {
             toggle.style.top = `${rect.top}px`;
             toggle.style.left = `${targetLeft}px`;
-            if (rect.height > 0) {
-                toggle.style.height = `${rect.height}px`;
-            }
         }
     }
 
@@ -240,10 +237,8 @@
                             </div>`;
                     });
 
-                    // בניית כפתור ההורדה
                     let downloadLinkHtml = '';
                     if (downloadUrl) {
-                        // עדכון לבקשתך: שם הקובץ נקבע למספר הספר (ID) בלבד מתוך הקישור
                         let safeFileName = `${bookId}.pdf`;
 
                         downloadLinkHtml = `
@@ -270,8 +265,10 @@
 
         const panel = document.createElement('div');
         panel.id = 'hb-details-panel';
+        panel.style.display = 'none';
+
         panel.innerHTML = `
-            <div class="hb-details-header">
+            <div class="hb-details-header" title="לחץ לסגירה">
                 <span class="hb-header-title-text" title="${bookTitle}">${bookTitle}</span>
                 <button id="hb-details-close">×</button>
             </div>
@@ -296,15 +293,15 @@
                 border: 1px solid #e2dcd5;
                 box-shadow: 0 6px 25px rgba(139, 126, 116, 0.18);
                 z-index: 9999999 !important;
-                display: block;
                 font-family: system-ui, -apple-system, sans-serif;
-                border-radius: 10px;
+                border-radius: 10px; /* עיגול פינות זהה של 10 פיקסלים */
                 direction: rtl;
                 resize: both;
                 overflow: hidden;
                 min-width: 280px;
                 min-height: 220px;
                 pointer-events: auto !important;
+                transition: border-color 0.2s ease; /* מעבר מסגרת חלק */
             }
             .hb-details-header {
                 height: 45px;
@@ -318,7 +315,19 @@
                 align-items: center;
                 border-bottom: 1px solid #e2dcd5;
                 user-select: none !important;
+                cursor: pointer;
+                transition: all 0.2s ease; /* מעבר צבעים חלק ב-Hover */
             }
+            /* אפקט Hover לכותרת תיבת המידע - זהה לחלוטין לכפתור */
+            .hb-details-header:hover {
+                background: linear-gradient(90deg, #eeebe3 0%, #ede8df 100%) !important;
+                border-bottom-color: #c4b9aa;
+            }
+            /* שינוי צבע המסגרת החיצונית של התיבה כאשר מרחפים מעל הכותרת */
+            #hb-details-panel:has(.hb-details-header:hover) {
+                border-color: #c4b9aa;
+            }
+
             .hb-header-title-text {
                 white-space: nowrap;
                 overflow: hidden;
@@ -332,6 +341,7 @@
                 cursor: pointer;
                 color: #a09586;
                 line-height: 1;
+                transition: color 0.2s ease;
             }
             .hb-details-header button:hover { color: #000; }
 
@@ -455,16 +465,18 @@
                 text-decoration: underline;
             }
 
+            /* כפתור שחזור: הותאם בדיוק לקו העיצובי המשודרג של הכותרת */
             #hb-details-toggle {
                 position: fixed;
                 z-index: 9999999 !important;
-                background: linear-gradient(135deg, #ffffff 0%, #fdfcf9 100%);
+                background: linear-gradient(90deg, #f7f5f0 0%, #eeebe3 100%) !important;
                 color: #4a4339;
                 border: 1px solid #e2dcd5;
-                width: 150px;
+                width: auto;
+                height: 45px;
                 box-sizing: border-box;
                 padding: 0 14px;
-                border-radius: 6px;
+                border-radius: 10px; /* עיגול פינות זהה לחלוטין של 10 פיקסלים */
                 cursor: pointer;
                 font-weight: bold;
                 box-shadow: 0 4px 12px rgba(139, 126, 116, 0.15);
@@ -476,9 +488,10 @@
                 align-items: center;
                 justify-content: space-between;
                 direction: rtl;
+                gap: 10px;
             }
             #hb-details-toggle:hover {
-                background: linear-gradient(135deg, #f7f5f0 0%, #eeebe3 100%);
+                background: linear-gradient(90deg, #eeebe3 0%, #ede8df 100%) !important;
                 border-color: #c4b9aa;
             }
             #hb-details-toggle span {
@@ -521,12 +534,16 @@
             });
         }
 
-        setTimeout(repositionUI, 50);
-
-        document.getElementById('hb-details-close').addEventListener('click', () => {
+        const closePanelAction = (e) => {
+            e.stopPropagation();
             panel.style.display = 'none';
             createToggleButton();
-        });
+        };
+
+        panel.querySelector('.hb-details-header').addEventListener('click', closePanelAction);
+
+        createToggleButton();
+        setTimeout(repositionUI, 50);
 
         function createToggleButton() {
             if (document.getElementById('hb-details-toggle')) return;
@@ -534,7 +551,7 @@
             btn.id = 'hb-details-toggle';
 
             btn.innerHTML = `
-                <span>פרטי הספר</span>
+                <span>לפרטי הספר והורדה</span>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="16" x2="12" y2="12"></line>
