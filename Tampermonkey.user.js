@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ניהול ועיצוב עבור HebrewBooks
 // @namespace    http://tampermonkey.net/
-// @version      0.9
+// @version      1.0
 // @description  Auto-redirect to format B, dynamic header, custom download button with ID-only filename, robust event isolation, and pixel-perfect toolbar anchoring
 // @author       צדיק וטוב לו וההודי של gemini
 // @match        *://beta.hebrewbooks.org/*
