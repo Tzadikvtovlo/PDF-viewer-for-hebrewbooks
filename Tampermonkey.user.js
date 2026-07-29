@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         ניהול ועיצוב עבור HebrewBooks
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Auto-redirect to format B, dynamic header, custom download button with ID-only filename, robust event isolation, and pixel-perfect toolbar anchoring
 // @author       צדיק וטוב לו וההודי של gemini
 // @match        *://beta.hebrewbooks.org/*
 // @match        *://hebrewbooks.org/*
+// @match        *://www.hebrewbooks.org/*
 // @updateURL    https://raw.githubusercontent.com/Tzadikvtovlo/PDF-viewer-for-hebrewbooks/main/Tampermonkey.user.js
 // @downloadURL  https://raw.githubusercontent.com/Tzadikvtovlo/PDF-viewer-for-hebrewbooks/main/Tampermonkey.user.js
 // @icon         https://www.google.com/s2/favicons?sz=512&domain=beta.hebrewbooks.org
@@ -18,28 +19,46 @@
 
     const currentUrl = new URL(window.location.href);
     const pathname = currentUrl.pathname;
+    const pathnameLower = pathname.toLowerCase();
 
-    // --- חלק א': ניווט והפניות ---
+    // --- חלק א': ניווט והפניות (מורחב לכל סוגי הקישורים) ---
 
-    if (pathname.includes('pdfpager.aspx')) {
-        const bookId = currentUrl.searchParams.get('req');
-        const pageNum = currentUrl.searchParams.get('pgnum') || '1';
-        if (bookId) {
-            window.location.replace(`https://beta.hebrewbooks.org/reader/reader.aspx?sfid=${bookId}#p=${pageNum}&fitMode=fitwidth&hlts=&ocr=`);
-            return;
-        }
-    }
-
-    const shortUrlMatch = pathname.match(/^\/(\d+)\/?$/);
-    if (shortUrlMatch) {
-        const bookId = shortUrlMatch[1];
-        window.location.replace(`https://beta.hebrewbooks.org/reader/reader.aspx?sfid=${bookId}#p=1&fitMode=fitwidth&hlts=&ocr=`);
+    // 1. אם אנחנו בקורא אבל לא בדומיין של הבטא - העברה מיידית לבטא
+    if (pathnameLower.includes('reader.aspx') && currentUrl.hostname !== 'beta.hebrewbooks.org') {
+        window.location.replace(`https://beta.hebrewbooks.org/reader/reader.aspx${currentUrl.search}${currentUrl.hash}`);
         return;
     }
 
+    let targetBookId = null;
+    let targetPageNum = '1';
+
+    // 2. זיהוי לפי pdfpager.aspx
+    if (pathnameLower.includes('pdfpager.aspx')) {
+        targetBookId = currentUrl.searchParams.get('req');
+        targetPageNum = currentUrl.searchParams.get('pgnum') || '1';
+    } 
+    // 3. זיהוי לפי sefer.aspx (קישורים ישנים מסוימים)
+    else if (pathnameLower.includes('sefer.aspx')) {
+        targetBookId = currentUrl.searchParams.get('id');
+    }
+    // 4. זיהוי לפי כתובת מקוצרת (לדוגמה /12345)
+    else {
+        const shortUrlMatch = pathname.match(/^\/(\d+)\/?$/);
+        if (shortUrlMatch) {
+            targetBookId = shortUrlMatch[1];
+        }
+    }
+
+    // אם נמצא מזהה ספר ואנחנו לא בתצוגה המיוחדת - בצע הפניה לתצוגת הקורא המיוחדת
+    if (targetBookId && !(currentUrl.hostname === 'beta.hebrewbooks.org' && pathnameLower.includes('reader.aspx'))) {
+        window.location.replace(`https://beta.hebrewbooks.org/reader/reader.aspx?sfid=${targetBookId}#p=${targetPageNum}&fitMode=fitwidth&hlts=&ocr=`);
+        return;
+    }
+
+
     // --- חלק ב': חילוץ, ניקוי ובנייה מחדש של ה-Details ---
 
-    if (pathname.includes('reader.aspx')) {
+    if (pathnameLower.includes('reader.aspx')) {
         const bookId = currentUrl.searchParams.get('sfid');
         if (!bookId) return;
 
@@ -294,14 +313,14 @@
                 box-shadow: 0 6px 25px rgba(139, 126, 116, 0.18);
                 z-index: 9999999 !important;
                 font-family: system-ui, -apple-system, sans-serif;
-                border-radius: 10px; /* עיגול פינות זהה של 10 פיקסלים */
+                border-radius: 10px;
                 direction: rtl;
                 resize: both;
                 overflow: hidden;
                 min-width: 280px;
                 min-height: 220px;
                 pointer-events: auto !important;
-                transition: border-color 0.2s ease; /* מעבר מסגרת חלק */
+                transition: border-color 0.2s ease;
             }
             .hb-details-header {
                 height: 45px;
@@ -316,14 +335,12 @@
                 border-bottom: 1px solid #e2dcd5;
                 user-select: none !important;
                 cursor: pointer;
-                transition: all 0.2s ease; /* מעבר צבעים חלק ב-Hover */
+                transition: all 0.2s ease;
             }
-            /* אפקט Hover לכותרת תיבת המידע - זהה לחלוטין לכפתור */
             .hb-details-header:hover {
                 background: linear-gradient(90deg, #eeebe3 0%, #ede8df 100%) !important;
                 border-bottom-color: #c4b9aa;
             }
-            /* שינוי צבע המסגרת החיצונית של התיבה כאשר מרחפים מעל הכותרת */
             #hb-details-panel:has(.hb-details-header:hover) {
                 border-color: #c4b9aa;
             }
@@ -465,7 +482,6 @@
                 text-decoration: underline;
             }
 
-            /* כפתור שחזור: הותאם בדיוק לקו העיצובי המשודרג של הכותרת */
             #hb-details-toggle {
                 position: fixed;
                 z-index: 9999999 !important;
@@ -476,7 +492,7 @@
                 height: 45px;
                 box-sizing: border-box;
                 padding: 0 14px;
-                border-radius: 10px; /* עיגול פינות זהה לחלוטין של 10 פיקסלים */
+                border-radius: 10px;
                 cursor: pointer;
                 font-weight: bold;
                 box-shadow: 0 4px 12px rgba(139, 126, 116, 0.15);
