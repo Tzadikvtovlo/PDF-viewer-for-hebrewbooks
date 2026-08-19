@@ -1,8 +1,12 @@
-# PDF-viewer-for-hebrewbooks
+# PDF viewer for hebrewbooks
 
-סקריפט Tampermonkey להצגת ספרי היברובוקס ישירות במציג ה PDF, וכפתור הורדה ומידע בתיבה ייעודית בעיצוב נקי ואלגנטי.
+סקריפט [Tampermonkey](https://www.tampermonkey.net/) להצגת ספרי היברובוקס ישירות במציג ה PDF, וכפתור הורדה ומידע בתיבה ייעודית בעיצוב נקי ואלגנטי.
 
 הסקריפט גם מחליף את שם הקובץ היורד למספר הסידורי של של הספר, כך שיוכל להיות מזוהה בקלות בתוכנות כמו אוצריא, כתבי הקודש, אוצר הספרים.
+
+להתקנה לחץ:
+
+https://github.com/Tzadikvtovlo/PDF-viewer-for-hebrewbooks/raw/refs/heads/main/Tampermonkey.user.js
 
 מידע נחוץ:
 
