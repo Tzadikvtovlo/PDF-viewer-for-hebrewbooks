@@ -6,7 +6,7 @@
 
 להתקנה לחץ:
 
-https://github.com/Tzadikvtovlo/PDF-viewer-for-hebrewbooks/raw/refs/heads/main/Tampermonkey.user.js
+https://github.com/Tzadikvtovlo/PDF-viewer-for-hebrewbooks/raw/refs/heads/main/PDFViewerForHebrewbooks.user.js
 
 מידע נחוץ:
 
