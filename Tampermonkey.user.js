@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         ניהול ועיצוב עבור HebrewBooks
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      2.0
 // @description  Auto-redirect to format B, dynamic header, custom download button with ID-only filename, robust event isolation, and pixel-perfect toolbar anchoring
 // @author       צדיק וטוב לו וההודי של gemini
 // @match        *://beta.hebrewbooks.org/*
 // @match        *://hebrewbooks.org/*
 // @match        *://www.hebrewbooks.org/*
-// @updateURL    https://raw.githubusercontent.com/Tzadikvtovlo/PDF-viewer-for-hebrewbooks/main/Tampermonkey.user.js
-// @downloadURL  https://raw.githubusercontent.com/Tzadikvtovlo/PDF-viewer-for-hebrewbooks/main/Tampermonkey.user.js
+// @updateURL    https://raw.githubusercontent.com/Tzadikvtovlo/PDF-viewer-for-hebrewbooks/main/PDFViewerForHebrewbooks.user.js
+// @downloadURL  https://raw.githubusercontent.com/Tzadikvtovlo/PDF-viewer-for-hebrewbooks/main/PDFViewerForHebrewbooks.user.js
 // @icon         https://www.google.com/s2/favicons?sz=512&domain=beta.hebrewbooks.org
 // @grant        GM_download
 // @run-at       document-start
